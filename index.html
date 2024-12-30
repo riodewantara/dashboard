@@ -4,134 +4,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Satrya Putra Dewantara</title>
+    <title>Dashboard Produk</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <style>
-        :root {
-            --primary-color: #4e73df;
-            --secondary-color: #858796;
-            --success-color: #1cc88a;
-            --info-color: #36b9cc;
-            --warning-color: #f6c23e;
-            --danger-color: #e74a3b;
-        }
-
         body {
             background-color: #f8f9fc;
             font-family: 'Nunito', sans-serif;
-            overflow-x: hidden;
         }
-
-        .sidebar {
-            height: 100vh;
-            background: linear-gradient(180deg, var(--primary-color) 0%, #224abe 100%);
-            color: white;
-            position: fixed;
-            transition: all 0.3s;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-            z-index: 1000;
-        }
-
-        .sidebar .logo {
-            padding: 1.5rem 1rem;
-            text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .sidebar a {
-            color: rgba(255,255,255,0.8);
-            text-decoration: none;
-            padding: 1rem 1.5rem;
-            display: flex;
-            align-items: center;
-            transition: all 0.3s;
-        }
-
-        .sidebar a i {
-            margin-right: 0.75rem;
-            font-size: 1.1rem;
-        }
-
-        .sidebar a:hover {
-            color: white;
-            background: rgba(255,255,255,0.1);
-            padding-left: 1.75rem;
-        }
-
         .content-wrapper {
-            margin-left: 250px; /* Menyesuaikan margin sesuai dengan lebar sidebar */
             padding: 20px;
         }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="logo">
-            <h2>Dashboard</h2>
-        </div>
-        <a href="#"><i class="bi bi-house"></i> Home</a>
-        <a href="#"><i class="bi bi-bar-chart"></i> Reports</a>
-        <!-- Tambahkan tautan lainnya sesuai kebutuhan -->
-    </div>
-
     <div class="content-wrapper">
-        <h1>Data Dashboard</h1>
-        <canvas id="myChart" width="400" height="200"></canvas>
+        <h1>Dashboard Produk</h1>
+
+        <div class="mb-3">
+            <label for="categorySelect" class="form-label">Pilih Kategori:</label>
+            <select class="form-select" id="categorySelect" aria-label="Pilih Kategori">
+                <option value="all">Semua</option>
+                <option value="sepatu">Sepatu</option>
+                <option value="sandal">Sandal</option>
+            </select>
+        </div>
+
+        <h2 class="mt-4">Data Produk</h2>
+        <table class="table table-bordered" id="productTable">
+            <thead>
+                <tr>
+                    <th>Nama Produk</th>
+                    <th>Kategori</th>
+                    <th>Jumlah</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data produk akan dimasukkan di sini -->
+            </tbody>
+        </table>
+
+        <canvas id="myChart" width="400" height="200" class="mt-4"></canvas>
     </div>
 
     <script>
-        // Memuat file CSV dari repositori
-        fetch('Imports.csv') // Pastikan 'Imports.csv' adalah nama file yang benar
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.text();
-            })
-            .then(data => {
-                const rows = data.split('\n').slice(1); // Mengabaikan header jika ada
-                const labels = [];
-                const values = [];
+        // Data Produk
+        const products = [
+            { name: 'Sepatu Olahraga', category: 'sepatu', quantity: 30 },
+            { name: 'Sepatu Formal', category: 'sepatu', quantity: 20 },
+            { name: 'Sandal Santai', category: 'sandal', quantity: 25 },
+            { name: 'Sandal Kulit', category: 'sandal', quantity: 15 },
+        ];
 
-                rows.forEach(row => {
-                    const cols = row.split(',');
-                    if (cols.length > 1) { // Pastikan ada data untuk diproses
-                        labels.push(cols[0]); // Misalkan kolom pertama adalah label
-                        values.push(parseFloat(cols[1])); // Misalkan kolom kedua adalah nilai
-                    }
-                });
+        const productTable = document.querySelector('#productTable tbody');
+        const categorySelect = document.getElementById('categorySelect');
+        const ctx = document.getElementById('myChart').getContext('2d');
+        let myChart;
 
-                // Membuat grafik menggunakan Chart.js
-                const ctx = document.getElementById('myChart').getContext('2d');
-                const myChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Data Penjualan',
-                            data: values,
-                            backgroundColor: 'rgba(78, 115, 223, 0.5)',
-                            borderColor: 'rgba(78, 115, 223, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
+        function renderTable(category) {
+            productTable.innerHTML = ''; // Kosongkan tabel
+            let filteredProducts = products;
+
+            // Filter produk berdasarkan kategori yang dipilih
+            if (category !== 'all') {
+                filteredProducts = products.filter(product => product.category === category);
+            }
+
+            // Tambahkan data produk ke tabel
+            filteredProducts.forEach(product => {
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `<td>${product.name}</td><td>${product.category}</td><td>${product.quantity}</td>`;
+                productTable.appendChild(newRow);
+            });
+
+            updateChart(filteredProducts); // Perbarui grafik
+        }
+
+        function updateChart(filteredProducts) {
+            const labels = filteredProducts.map(product => product.name);
+            const data = filteredProducts.map(product => product.quantity);
+
+            if (myChart) {
+                myChart.destroy(); // Hancurkan chart sebelumnya sebelum membuat yang baru
+            }
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Jumlah Produk',
+                        data: data,
+                        backgroundColor: 'rgba(78, 115, 223, 0.5)',
+                        borderColor: 'rgba(78, 115, 223, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
                         }
                     }
-                });
-            })
-            .catch(error => console.error('Error loading the CSV file:', error));
+                }
+            });
+        }
+
+        // Event listener untuk dropdown kategori
+        categorySelect.addEventListener('change', (event) => {
+            const selectedCategory = event.target.value;
+            renderTable(selectedCategory);
+        });
+
+        // Render tabel dengan semua produk pada saat pertama kali
+        renderTable('all');
     </script>
 
 </body>
