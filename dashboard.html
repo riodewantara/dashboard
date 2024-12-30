@@ -88,7 +88,7 @@
 
     <script>
         // Memuat file CSV dari repositori
-        fetch('data.csv') // Ganti 'data.csv' dengan nama file CSV Anda jika berbeda
+        fetch(Imports.csv') // Ganti 'data.csv' dengan nama file CSV Anda jika berbeda
             .then(response => response.text())
             .then(data => {
                 const rows = data.split('\n').slice(1); // Mengabaikan header jika ada
